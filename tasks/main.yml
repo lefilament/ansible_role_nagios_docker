@@ -1,0 +1,103 @@
+---
+
+## Install Nagios docker
+- name: create Nagios docker structure on server in /home/docker/nagios
+  file:
+    name: "{{ item }}"
+    state: directory
+    owner: '999'
+    group: '1000'
+    mode: '0755'
+  with_items:
+    - /home/docker/nagios/etc/objects
+    - /home/docker/nagios/stylesheets
+
+- name: Copy nagios docker-compose file
+  template:
+    src: nagios.yaml.j2
+    dest: /home/docker/nagios/docker-compose.yaml
+    mode: '0644'
+  notify: restart nagios docker
+
+- name: copy configuration files
+  copy:
+    src: "{{ item }}"
+    dest: /home/docker/nagios/etc/{{ item }}
+    mode: '0644'
+    owner: '999'
+    group: '1000'
+  with_items:
+    - cgi.cfg
+    - nagios.cfg
+    - resource.cfg
+  notify: restart nagios docker
+  tags: nagios_config
+
+- name: copy CSS files
+  copy:
+    src: "{{ item }}"
+    dest: /home/docker/nagios/stylesheets/{{ item }}
+    mode: '0644'
+    owner: '999'
+    group: '1000'
+  with_items:
+    - avail.css
+    - checksanity.css
+    - cmd.css
+    - common.css
+    - config.css
+    - extinfo.css
+    - histogram.css
+    - histogramgraph.css
+    - history.css
+    - jsonquery.css
+    - map.css
+    - map-directive.css
+    - ministatus.css
+    - nag_funcs.css
+    - notifications.css
+    - outages.css
+    - showlog.css
+    - status.css
+    - statusmap.css
+    - summary.css
+    - tac.css
+    - trends.css
+    - trendsgraph.css
+  notify: restart nagios docker
+  tags: nagios_config
+
+- name: copy objects configuration files
+  template:
+    src: "{{ item }}.j2"
+    dest: /home/docker/nagios/etc/objects/{{ item }}
+    mode: '0644'
+    owner: '999'
+    group: '1000'
+  with_items:
+    - vps.cfg
+    - localhost.cfg
+    - templates.cfg
+    - contacts.cfg
+    - commands.cfg
+    - windows.cfg
+    - timeperiods.cfg
+  notify: restart nagios docker
+  tags: nagios_config
+
+- name: create apache2 dir on server in /home/docker/nagios
+  file:
+    name: /home/docker/nagios/apache2
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+    state: directory
+
+- name: install apache2 configuration files
+  copy:
+    src: "{{ item }}"
+    dest: /home/docker/nagios/apache2/{{ item }}
+    mode: '0644'
+  with_items:
+    - 000-default.conf
+    - nagios.conf

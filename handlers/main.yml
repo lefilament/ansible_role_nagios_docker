@@ -1,0 +1,6 @@
+---
+
+- name: restart nagios docker
+  docker_compose:
+    project_src: /home/docker/nagios/
+    restarted: true

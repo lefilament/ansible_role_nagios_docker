@@ -1,0 +1,62 @@
+###############################################################################
+# LOCALHOST.CFG - SAMPLE OBJECT CONFIG FILE FOR MONITORING THIS MACHINE
+#
+#
+# NOTE: This config file is intended to serve as an *extremely* simple
+#       example of how you can create configuration entries to monitor
+#       the local (Linux) machine.
+#
+###############################################################################
+
+
+
+
+###############################################################################
+###############################################################################
+#
+# HOST DEFINITION
+#
+###############################################################################
+###############################################################################
+
+# Define a host for the local machine
+
+define host{
+        use                     linux-server
+        host_name               Nagios Server
+        alias                   Nagios Server
+        address                 127.0.0.1
+        }
+
+
+###############################################################################
+###############################################################################
+#
+# SERVICE DEFINITIONS
+#
+###############################################################################
+###############################################################################
+
+define service{
+        use                             generic-service
+        host_name                       Nagios Server
+        service_description             Nagios Service
+        check_command                   check_local_procs!20!2:!nagios
+        }
+
+define service{
+        use                             daily-service
+        host_name                       Nagios Server
+        service_description             Trigger Build Odoo Images
+        check_command                   trigger_docker_hub!hub.docker.com!{{ docker_hub_uri }}
+        }
+
+{% for service in services_to_be_monitored %}
+define service{
+        use                             {{ service.period }}-service
+        host_name                       Nagios Server
+        service_description             {{ service.name }} {{ service.url }}
+        check_command                   check_{{ service.service }}!'{{ service.url }}'!{{ service.uri }}
+        }
+
+{% endfor %}

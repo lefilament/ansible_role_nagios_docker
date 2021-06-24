@@ -1,0 +1,21 @@
+---
+# Nagios URL
+nagios_url: "nagios.example.org"
+
+# Windows server
+win_srv_ip: 10.12.12.12
+win_b2b_url: b2b.example.org
+
+# Docker Hub URI
+docker_hub_uri: /api/build/v1/source/test/trigger/test2/call/
+services_to_be_monitored:
+  - name: Webmail
+    period: generic
+    service: https
+    url: mail.example.org
+    uri: /webmail/
+  - name: Certificate IMAP
+    period: daily
+    service: certif
+    url: mail.example.org
+    uri: 993

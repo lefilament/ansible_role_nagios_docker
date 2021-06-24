@@ -1,0 +1,162 @@
+###############################################################################
+###############################################################################
+#
+# HOST DEFINITION
+#
+###############################################################################
+###############################################################################
+
+# Define a host for the local machine
+define host{
+        use                     generic-host
+        host_name               Windows-Server
+        alias                   Windows-Server
+        address                 {{ win_srv_ip }}
+        check_command           check_nrpe_win!check_os_version
+        }
+
+###############################################################################
+###############################################################################
+#
+# HOST GROUP DEFINITION
+#
+###############################################################################
+###############################################################################
+
+# Define an optional hostgroup for Linux machines
+
+define hostgroup{
+        hostgroup_name  serveurs_win
+        alias           Serveurs Windows
+        members         Windows-Server
+        }
+
+
+
+###############################################################################
+###############################################################################
+#
+# SERVICE DEFINITIONS
+#
+###############################################################################
+###############################################################################
+
+
+# Define a service to check the disk space of the root partition
+# on the local machine.  Warning if < 20% free, critical if
+# < 10% free space on partition.
+
+define service{
+        use                             generic-service,graphed-service
+        host_name                       Windows-Server
+        service_description             Espace Disque C:
+        check_command                   check_nrpe_win!check_drivesize!-a drive=C show-all
+        }
+
+define service{
+        use                             generic-service
+        host_name                       Windows-Server
+        service_description             Espace Disque U:
+        check_command                   check_nrpe_win!check_drivesize!-t 120 -a drive=U
+        }
+
+define service{
+        use                             generic-service
+        host_name                       Windows-Server
+        service_description             Espace Disque W:
+        check_command                   check_nrpe_win!check_drivesize!-t 120 -a drive=W
+        }
+
+define service{
+        use                             daily-service
+        host_name                       Windows-Server
+        service_description             Fichiers Sophos SECMON
+        check_command                   check_nrpe_win!check_files!-t 120 -a "path=W:\\" "filter=access >= -7d" "ok=count = 4" "warn=count > 4" "crit=count < 4" show-all
+        }
+
+define service{
+        use                             daily-service
+        host_name                       Windows-Server
+        service_description             Fichiers Sophos SOIF
+        check_command                   check_nrpe_win!check_files!-t 120 -a "path=U:\\" "filter=access >= -7d" "ok=count = 3" "warn=count > 3" "crit=count < 3" show-all
+        }
+
+# Define a service to check the number of currently running procs
+# on the local machine.  Warning if > 250 processes, critical if
+# > 400 processes.
+
+define service{
+        use                             generic-service,graphed-service
+        host_name                       Windows-Server
+        service_description             Services en cours
+        check_command                   check_nrpe_win!check_process!-a "warn=count > 120" "crit=count > 130" show-all
+        }
+
+
+# Define a service to check the load on the local machine.
+
+define service{
+        use                             generic-service,graphed-service
+        host_name                       Windows-Server
+        service_description             Charge CPU
+        check_command                   check_nrpe_win!check_cpu!-a show-all time=1h time=30m time=15m
+        }
+
+# Define a service to check the RAM on the local machine.
+
+define service{
+        use                             generic-service,graphed-service
+        host_name                       Windows-Server
+        service_description             Charge RAM
+        check_command                   check_nrpe_win!check_memory!-a show-all
+        }
+
+# Sophos
+define service{
+        use                             generic-service
+        host_name                       Windows-Server
+        service_description             Sophos
+        check_command                   check_nrpe_win!check_process!-a process=sqlservr.exe process=SophosUpdateMgr.exe process=SUMService.exe process=MgntSvc.exe process=ManagementAgentNT.exe process=Sophos.FrontEnd.Service.exe show-all
+	}
+
+# RDP
+define service{
+        use                             generic-service
+        host_name                       Windows-Server
+        service_description             RDP
+        check_command                   check_nrpe_win!check_service!-a service=UmRdpService show-all
+        }
+
+# NetDrive2
+define service{
+        use                             generic-service
+        host_name                       Windows-Server
+        service_description             NetDrive2
+        check_command                   check_nrpe_win!check_process!-a process=NetDrive2.exe process=nd2svc.exe show-all
+        }
+
+# Log forward
+#define service{
+#        use                             generic-service
+#        host_name                       Windows-Server
+#        service_description             Log Forwarder
+#        check_command                   check_nrpe_win!check_service!-a service=nxlog show-all
+#        }
+
+# NsClient++
+define service{
+        use                             generic-service
+        host_name                       Windows-Server
+        service_description             NsClient++
+        check_command                   check_nrpe_win!check_service!-a service=nscp show-all
+        }
+
+
+# Define a service to check the
+# availability of the Thales B2B portal
+define service{
+        use                             generic-service
+        host_name                       Windows-Server
+        service_description             Portail B2B
+        check_command                   check_https!'{{ win_b2b_url }}'!/client/index.php/
+        }
