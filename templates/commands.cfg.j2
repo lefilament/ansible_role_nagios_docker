@@ -53,7 +53,7 @@ define command{
 # 'check_https' command definition
 define command{
         command_name    check_https
-        command_line    $USER1$/check_http -S -H $ARG1$ -u $ARG2$ --sni -C 29,15 --continue-after-certificate
+        command_line    $USER1$/check_http -S -H $ARG1$ -u $ARG2$ --sni -C 27,15 --continue-after-certificate
         }
 
 # 'check_certif' command definition
@@ -80,9 +80,9 @@ define command {
         command_line    $USER1$/check_nrpe -2 -H $HOSTADDRESS$ -c $ARG1$ $ARG2$
 }
 
-# trigger_docker_hub
+# trigger_webhook
 define command {
-        command_name    trigger_docker_hub
+        command_name    trigger_webhook
         command_line    $USER1$/check_http -H $ARG1$ -S -u $ARG2$ -j POST
 }
 

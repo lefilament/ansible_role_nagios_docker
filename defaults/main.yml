@@ -6,8 +6,13 @@ nagios_url: "nagios.example.org"
 win_srv_ip: 10.12.12.12
 win_b2b_url: b2b.example.org
 
-# Docker Hub URI
-docker_hub_uri: /api/build/v1/source/test/trigger/test2/call/
+# Webhooks to be triggered daily
+webhooks_to_be_called_daily:
+  - name: Docker Odoo
+    url: gitlab.example.org
+    uri: "/api/v4/projects/xx/ref/REF_NAME/trigger/pipeline?token=TOKEN"
+
+# List of external services to be monitored
 services_to_be_monitored:
   - name: Webmail
     period: generic

@@ -1,7 +1,7 @@
 docker_nagios
 =============
 
-The main repo for this role is on [Le Filament GitLab](https://sources.le-filament.com/lefilament/ansible-roles/docker_server.git)
+The main repo for this role is on [Le Filament GitLab](https://sources.le-filament.com/lefilament/ansible-roles/docker_nagios.git)
 This role deploys Nagios in Docker for monitoring all hosts defined in Ansible inventory for services depending on groups they belong to.
 The authentifcation mechanism for Nagios is disabled in this role, replaced by Traefik one.
 Also, specific css files are provisionned in this role to update Nagios UI look & feel.
@@ -18,7 +18,7 @@ Variables from default directory :
 * nagios_url: URL on which Nagios will be listening
 * win_srv_ip: IP address of Windows server
 * win_b2b_url: URL for B2B exchange server
-* docker_hub_uri: URI of DockerHub to trigger build of images daily
+* webhooks_to_be_called_daily: list of WebHooks to be called daily
 * services_to_be_monitored: list of extra services to be monitored
 
 Variables used on other hosts for monitoring :

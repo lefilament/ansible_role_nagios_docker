@@ -44,13 +44,15 @@ define service{
         check_command                   check_local_procs!20!2:!nagios
         }
 
+{% for webhook in webhooks_to_be_called_daily %}
 define service{
         use                             daily-service
         host_name                       Nagios Server
-        service_description             Trigger Build Odoo Images
-        check_command                   trigger_docker_hub!hub.docker.com!{{ docker_hub_uri }}
+        service_description             WebHook {{ webhook.name }}
+        check_command                   trigger_webhook!{{ webhook.url }}!{{ webhook.uri }}
         }
 
+{% endfor %}
 {% for service in services_to_be_monitored %}
 define service{
         use                             {{ service.period }}-service
