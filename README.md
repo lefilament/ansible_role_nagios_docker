@@ -26,7 +26,6 @@ Variables used on other hosts for monitoring :
 * urls for every service listed below
 
 Hosts from the following groups added to monitoring :
-* physical_server
 * docker
 * docker_direct_internet_access
 * docker_restrict_internet_access

@@ -7,7 +7,7 @@
 ###############################################################################
 
 # Define a host for the local machine
-{% for host in groups['all'] | difference(groups['physical_server']) | sort %}
+{% for host in groups['all'] | sort %}
 {% if host != inventory_hostname %}
 define host{
         use                     linux-server
@@ -17,19 +17,6 @@ define host{
         }
 
 {% endif %}
-{% endfor %}
-{% for host in groups['physical_server'] | sort %}
-define host{
-        use                     generic-host
-        host_name               {{ host }}
-        alias                   {{ host }}
-{% if hostvars[host].odoo_prod is defined %}
-        address                 {{ hostvars[host].odoo_prod.url }}
-{% else %}
-        address                 {{ hostvars[host].ansible_host }}
-{% endif %}
-        }
-
 {% endfor %}
 define host{
         use                     linux-server
