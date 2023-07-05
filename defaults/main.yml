@@ -2,25 +2,21 @@
 # Nagios URL
 nagios_url: "nagios.example.org"
 
-# Windows server
-win_srv_ip: 10.12.12.12
-win_b2b_url: b2b.example.org
-
 # Webhooks to be triggered daily
 webhooks_to_be_called_daily:
-  - name: Docker Odoo
-    url: gitlab.example.org
-    uri: "/api/v4/projects/xx/ref/REF_NAME/trigger/pipeline?token=TOKEN"
+    - name: Docker Odoo
+      url: gitlab.example.org
+      uri: "/api/v4/projects/xx/ref/REF_NAME/trigger/pipeline?token=TOKEN"
 
 # List of external services to be monitored
 services_to_be_monitored:
-  - name: Webmail
-    period: generic
-    service: https
-    url: mail.example.org
-    uri: /webmail/
-  - name: Certificate IMAP
-    period: daily
-    service: certif
-    url: mail.example.org
-    uri: 993
+    - name: Webmail
+      period: generic
+      service: https
+      url: mail.example.org
+      uri: /webmail/
+    - name: Certificate IMAP
+      period: daily
+      service: certif
+      url: mail.example.org
+      uri: 993

@@ -26,12 +26,12 @@
 
 define contact{
         name                            generic-contact         ; The name of this contact template
-        service_notification_period     heures-ouvres           ; service notifications can be sent anytime during working hours
-        host_notification_period        heures-ouvres           ; host notifications can be sent anytime during working hours
-        service_notification_options    w,u,c,r,f,s             ; send notifications for all service states, flapping events, and scheduled downtime events
+        host_notification_period        24x7                    ; host notifications can be sent anytime
         host_notification_options       d,u,r,f,s               ; send notifications for all host states, flapping events, and scheduled downtime events
-        service_notification_commands   notify-service-by-email ; send service notifications via email
         host_notification_commands      notify-host-by-email    ; send host notifications via email
+        service_notification_period     24x7                    ; service notifications can be sent anytime
+        service_notification_options    w,u,c,r,f,s             ; send notifications for all service states, flapping events, and scheduled downtime events
+        service_notification_commands   notify-service-by-email ; send service notifications via email
         register                        0                       ; DONT REGISTER THIS DEFINITION - ITS NOT A REAL CONTACT, JUST A TEMPLATE!
         }
 
@@ -64,6 +64,7 @@ define host{
         check_interval                  10              ; Actively check the host every 10 minutes
         retry_interval                  2               ; Schedule host check retries at 2 minute intervals
         max_check_attempts              3               ; Check each host 3 times (max)
+        contact_groups                  admins          ; Notifications get sent out to everyone in the 'admins' group
         register                        0               ; DONT REGISTER THIS DEFINITION - ITS NOT A REAL HOST, JUST A TEMPLATE!
         }
 
@@ -89,7 +90,7 @@ define host{
 define servicegroup{
         servicegroup_name       web-services
         alias                   Services Web
-        members                 {% for host in groups['odoo_server'] | sort %}{{ host }},Odoo {{ hostvars[host].odoo_url }},{% endfor %}{% for host in groups['owncloud_server'] | sort %}{{ host }},OwnCloud {{ hostvars[host].cloud_url }},{% endfor %}{% for host in groups['docker_odoo'] | sort %}{% if hostvars[host].odoo_prod is defined %}{{ host }},Odoo Server {{ hostvars[host].odoo_prod.url }},{% endif %}{% for instance in hostvars[host].odoo_nonprod_instances | default([]) %}{{ host }},{{ instance.name }} Server {{ instance['url'] }},{% endfor %}{% endfor %}{% for host in groups['docker_owncloud'] | union(groups['docker_nextcloud']) | sort %}{{ host }},Cloud Server {{ hostvars[host].cloud_url }},{% if hostvars[host].cloud_onlyoffice is defined %}{{ host }},OnlyOffice Server {{ hostvars[host].cloud_onlyoffice_url }},{% endif %}{% endfor %}{% for host in groups['docker_auth'] | sort %}{% if loop.index == loop.length %}{{ host }},PhpLdapAdmin {{ hostvars[host].ldap_url }},{{ host }},SSO Server {{ hostvars[host].sso_url }}{% else %}{{ host }},PhpLdapAdmin {{ hostvars[host].ldap_url }},{{ host }},SSO Server {{ hostvars[host].sso_url }},{% endif %}{% endfor %}
+        members                 {% for host in groups['odoo_server'] | sort %}{{ host }},Odoo {{ hostvars[host].odoo_url }},{% endfor %}{% for host in groups['owncloud_server'] | sort %}{{ host }},OwnCloud {{ hostvars[host].cloud_url }},{% endfor %}{% for host in groups['docker_odoo'] | sort %}{% for name, values in hostvars[host].odoo_instances.items() | default([]) %}{{ host }},{{ name }} server {{ values.url }},{% endfor %}{% endfor %}{% for host in groups['docker_owncloud'] | union(groups['docker_nextcloud']) | sort %}{{ host }},Cloud Server {{ hostvars[host].cloud_url }},{% if hostvars[host].cloud_onlyoffice is defined %}{{ host }},OnlyOffice Server {{ hostvars[host].cloud_onlyoffice_url }},{% endif %}{% endfor %}{% for host in groups['docker_auth'] | sort %}{% if loop.index == loop.length %}{{ host }},PhpLdapAdmin {{ hostvars[host].ldap_url }},{{ host }},SSO Server {{ hostvars[host].sso_url }}{% else %}{{ host }},PhpLdapAdmin {{ hostvars[host].ldap_url }},{{ host }},SSO Server {{ hostvars[host].sso_url }},{% endif %}{% endfor %}
 
         }
 
@@ -102,19 +103,19 @@ define servicegroup{
 define servicegroup{
         servicegroup_name       disk-utilisation
         alias                   Utilisation du disque
-        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Espace Disque,') }},Espace Disque,Windows-Server,Espace Disque C:,Windows-Server,Espace Disque U:,Windows-Server,Espace Disque W:
+        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Espace Disque,') }},Espace Disque
         }
 
 define servicegroup{
         servicegroup_name       cpu-utilisation
         alias                   Utilisation CPU
-        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Charge CPU,') }},Charge CPU,Windows-Server,Charge CPU
+        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Charge CPU,') }},Charge CPU
         }
 
 define servicegroup{
         servicegroup_name       ram-utilisation
         alias                   Utilisation RAM
-        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Charge RAM,') }},Charge RAM,Windows-Server,Charge RAM
+        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Charge RAM,') }},Charge RAM
         }
 
 define servicegroup{
@@ -126,7 +127,7 @@ define servicegroup{
 define servicegroup{
         servicegroup_name       services
         alias                   Services
-        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',SSHD Service,') }},SSHD Service,{{ groups['odoo_server'] | union(groups['owncloud_server']) | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Nginx Service,') }},Nginx Service,{{ groups['odoo_server'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Odoo Service,') }},Odoo Service,{{ groups['owncloud_server'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Owncloud Service,') }},Owncloud Service,{% for host in groups['full_maintenance'] | sort %}{% if hostvars[host].log_collection %}{{ host }},Filebeat Service,{% endif %}{% endfor %}{{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Services en cours,') }},Services en cours,Windows-Server,NetDrive2,Windows-Server,NsClient++,Windows-Server,RDP,Windows-Server,Services en cours,Windows-Server,Sophos,Nagios Server,Nagios Service
+        members                 {{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',SSHD Service,') }},SSHD Service,{{ groups['odoo_server'] | union(groups['owncloud_server']) | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Nginx Service,') }},Nginx Service,{{ groups['odoo_server'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Odoo Service,') }},Odoo Service,{{ groups['owncloud_server'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Owncloud Service,') }},Owncloud Service,{% for host in groups['full_maintenance'] | sort %}{% if hostvars[host].log_collection %}{{ host }},Filebeat Service,{% endif %}{% endfor %}{{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',Services en cours,') }},Services en cours,Nagios Server,Nagios Service
         }
 
 define servicegroup{
@@ -156,7 +157,7 @@ define servicegroup{
 define servicegroup{
         servicegroup_name       docker_odoo
         alias                   Odoo Dockers
-        members                 {% for host in groups['docker_odoo'] | sort %}{% if hostvars[host].odoo_prod is defined and host != 'Filament_Odoo' %}{{ host }},Docker Odoo,{% endif %}{% for instance in hostvars[host].odoo_nonprod_instances | default([]) %}{{ host }},Docker {{ instance.name }},{% endfor %}{% if hostvars[host].restrict_internet_access and hostvars[host].whitelisted_urls is defined %}{{ host }},Docker Odoo Whitelists,{% endif %}{% endfor %}Filament_Odoo,Docker Odoo
+        members                 {% for host in groups['docker_odoo'] | sort %}{% if host != 'Filament_Odoo' %}{% for name in hostvars[host].odoo_instances.keys() | default([]) %}{{ host }},Docker {{ name }},{% endfor %}{% endif %}{% if hostvars[host].restrict_internet_access and hostvars[host].whitelisted_urls is defined %}{{ host }},Docker Odoo Whitelists,{% endif %}{% endfor %}Filament_Odoo,Docker odoo,Filament_Odoo,Docker Odoo Whitelists
         }
 
 define servicegroup{
@@ -199,9 +200,11 @@ define service{
         name                            daily-service
         use                             generic-service
         max_check_attempts              2
-        check_interval                  1440
+        check_period                    morning
+        check_interval                  120
         retry_interval                  5
         notification_interval           1440
+        notification_period             24x7
         register                        0
         }
 

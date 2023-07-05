@@ -16,8 +16,6 @@ Role Variables
 
 Variables from default directory :
 * nagios_url: URL on which Nagios will be listening
-* win_srv_ip: IP address of Windows server
-* win_b2b_url: URL for B2B exchange server
 * webhooks_to_be_called_daily: list of WebHooks to be called daily
 * services_to_be_monitored: list of extra services to be monitored
 
@@ -31,7 +29,6 @@ Hosts from the following groups added to monitoring :
 * docker_restrict_internet_access
 * full_maintenance
 * backup_server
-* odoo_server
 * docker_auth
 * docker_drawio
 * docker_etherpad

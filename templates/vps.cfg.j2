@@ -120,7 +120,7 @@ define service{
         }
 
 define service{
-        use                             daily-service,graphed-service
+        use                             daily-service
         host_name                       {{ groups['backup_server'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',') }}
         service_description             Backup Cloud Files
         check_command                   check_nrpe!check_cloud_storage
@@ -262,28 +262,12 @@ define service{
         check_command                   check_nrpe!check_docker_framadate
         }
 
-# Docker Gitlab
-define service{
-        use                             generic-service,graphed-service
-        host_name                       {{ groups['docker_gitlab'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',') }}
-        service_description             Docker GitLab
-        check_command                   check_nrpe!check_docker_gitlab
-        }
-
 # Docker Jitsi
 define service{
         use                             generic-service,graphed-service
         host_name                       {{ groups['docker_jitsi'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',') }}
         service_description             Docker Jitsi
         check_command                   check_nrpe!check_docker_jitsi
-        }
-
-# Docker Mattermost
-define service{
-        use                             generic-service,graphed-service
-        host_name                       {{ groups['docker_mattermost'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',') }}
-        service_description             Docker Mattermost
-        check_command                   check_nrpe!check_docker_mattermost
         }
 
 # Docker PrivateBin
@@ -294,15 +278,7 @@ define service{
         check_command                   check_nrpe!check_docker_privatebin
         }
 
-# Docker Tuleap
-define service{
-        use                             generic-service,graphed-service
-        host_name                       {{ groups['docker_tuleap'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',') }}
-        service_description             Docker Tuleap
-        check_command                   check_nrpe!check_docker_tuleap
-        }
-
-# Docker Gitlab
+# Gitlab
 define service{
         use                             generic-service,graphed-service
         host_name                       {{ groups['gitlab'] | map('extract', hostvars, ['inventory_hostname']) | sort | join(',') }}
@@ -349,38 +325,21 @@ define service{
         }
 
 {% endif %}
-{% if hostvars[host].odoo_prod is defined %}
+
+{% for name, values in hostvars[host].odoo_instances.items() | default([]) %}
 define service{
         use                             generic-service
         host_name                       {{ host }}
-        service_description             Odoo Server {{ hostvars[host].odoo_prod.url }}
-        check_command                   check_https!'{{ hostvars[host].odoo_prod.url }}'!/web/login
+        service_description             {{ name }} server {{ values.url }}
+        check_command                   check_https!'{{ values.url }}'!/web/login
         }
 
-# Docker Odoo
+# Docker {{ name }} instance
 define service{
         use                             generic-service,graphed-service
         host_name                       {{ host }}
-        service_description             Docker Odoo
-        check_command                   check_nrpe!check_docker_odoo
-        }
-
-{% endif %}
-
-{% for instance in hostvars[host].odoo_nonprod_instances | default([]) %}
-define service{
-        use                             generic-service
-        host_name                       {{ host }}
-        service_description             {{ instance.name }} Server {{ instance['url'] }}
-        check_command                   check_https!'{{ instance['url'] }}'!/web/login
-        }
-
-# Docker Odoo non prod instance
-define service{
-        use                             generic-service,graphed-service
-        host_name                       {{ host }}
-        service_description             Docker {{ instance.name }}
-        check_command                   check_nrpe!check_docker_{{ instance.name }}
+        service_description             Docker {{ name }}
+        check_command                   check_nrpe!check_docker_{{ name }}
         }
 
 {% endfor %}
@@ -449,24 +408,13 @@ define service{
 
 {% endfor %}
 
-{% for host in groups['docker_gitlab'] | union(groups['gitlab']) | sort %}
-# {{ host }} Docker GitLab
+{% for host in groups['gitlab'] | sort %}
+# {{ host }} GitLab
 define service{
         use                             generic-service
         host_name                       {{ host }}
         service_description             GitLab Server {{ hostvars[host].git_url }}
         check_command                   check_https!'{{ hostvars[host].git_url }}'!/
-        }
-
-{% endfor %}
-
-{% for host in groups['docker_mattermost'] | sort %}
-# {{ host }} Docker Mattermost
-define service{
-        use                             generic-service
-        host_name                       {{ host }}
-        service_description             Mattermost Server {{ hostvars[host].mm_url }}
-        check_command                   check_https!'{{ hostvars[host].mm_url }}'!/
         }
 
 {% endfor %}
@@ -478,17 +426,6 @@ define service{
         host_name                       {{ host }}
         service_description             PrivateBin Server {{ hostvars[host].privatebin_url }}
         check_command                   check_https!'{{ hostvars[host].privatebin_url }}'!/
-        }
-
-{% endfor %}
-
-{% for host in groups['docker_tuleap'] | sort %}
-# {{ host }} Docker Tuleap
-define service{
-        use                             generic-service
-        host_name                       {{ host }}
-        service_description             Tuleap Server {{ hostvars[host].tuleap_url }}
-        check_command                   check_https!'{{ hostvars[host].tuleap_url }}'!/
         }
 
 {% endfor %}
